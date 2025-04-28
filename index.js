@@ -490,27 +490,48 @@ async function main() {
         }
       }
 
-      logger.section('Upload Summary');
-      logger.summary(`Total wallets: ${privateKeys.length}`);
-      logger.summary(`Uploads per wallet: ${count}`);
-      logger.summary(`Total attempted: ${totalUploads}`);
-      if (successful > 0) logger.success(`Successful: ${successful}`);
-      if (failed > 0) logger.error(`Failed: ${failed}`);
-      logger.success('All operations completed');
+   function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
-      rl.close();
-      process.exit(0);
-    });
+async function main() {
+  try {
+    // Semua proses utama kamu...
 
-    rl.on('close', () => {
-      logger.bye('Process completed ~ Bye bang !');
-    });
+    logger.section('Upload Summary');
+    logger.summary(`Total wallets: ${privateKeys.length}`);
+    logger.summary(`Uploads per wallet: ${count}`);
+    logger.summary(`Total attempted: ${totalUploads}`);
+    if (successful > 0) logger.success(`Successful: ${successful}`);
+    if (failed > 0) logger.error(`Failed: ${failed}`);
+    logger.success('All operations completed');
 
+    rl.close();
+    // process.exit(0); // Dihapus supaya bisa looping
   } catch (error) {
     logger.critical(`Main process error: ${error.message}`);
     rl.close();
-    process.exit(1);
+    // process.exit(1); // Dihapus supaya bisa looping
   }
 }
 
-main();
+// Event close diletakkan di luar main()
+rl.on('close', () => {
+  logger.bye('Process completed ~ Bye bang !');
+});
+
+async function mainLoop() {
+  while (true) {
+    try {
+      await main();
+      logger.wait('Waiting 24 hours before next run...');
+      await sleep(24 * 60 * 60 * 1000); // 24 jam dalam ms
+    } catch (error) {
+      logger.critical(`Main loop error: ${error.message}`);
+      await sleep(60 * 1000); // 1 menit kalau error
+    }
+  }
+}
+
+// Start looping
+mainLoop();
