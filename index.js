@@ -457,46 +457,44 @@ async function main() {
       let successful = 0;
       let failed = 0;
 
-      for (let walletIndex = 0; walletIndex < privateKeys.length; walletIndex++) {
-        currentKeyIndex = walletIndex;
-        const wallet = initializeWallet();
-        logger.section(`Processing Wallet #${walletIndex + 1} [${wallet.address}]`);
-
-        for (let i = 1; i <= count; i++) {
-          const uploadNumber = (walletIndex * count) + i;
-          logger.process(`Upload ${uploadNumber}/${totalUploads} (Wallet #${walletIndex + 1}, File #${i})`);
-
-          try {
-            const imageBuffer = await fetchRandomImage();
-            const imageData = await prepareImageData(imageBuffer);
-            await uploadToStorage(imageData, wallet, walletIndex);
-            successful++;
-            logger.success(`Upload ${uploadNumber} completed`);
-
-            if (uploadNumber < totalUploads) {
-              logger.loading('Waiting for next upload...');
-              await delay(3000);
-            }
-          } catch (error) {
-            failed++;
-            logger.error(`Upload ${uploadNumber} failed: ${error.message}`);
-            await delay(5000);
-          }
-        }
-
-        if (walletIndex < privateKeys.length - 1) {
-          logger.loading('Switching to next wallet...');
-          await delay(10000);
-        }
-      }
-
-function sleep(ms) {
+      function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 async function main() {
   try {
-    // --- LOGIC UTAMAMU MULAI DI SINI ---
+    for (let walletIndex = 0; walletIndex < privateKeys.length; walletIndex++) {
+      currentKeyIndex = walletIndex;
+      const wallet = initializeWallet();
+      logger.section(`Processing Wallet #${walletIndex + 1} [${wallet.address}]`);
+
+      for (let i = 1; i <= count; i++) {
+        const uploadNumber = (walletIndex * count) + i;
+        logger.process(`Upload ${uploadNumber}/${totalUploads} (Wallet #${walletIndex + 1}, File #${i})`);
+
+        try {
+          const imageBuffer = await fetchRandomImage();
+          const imageData = await prepareImageData(imageBuffer);
+          await uploadToStorage(imageData, wallet, walletIndex);
+          successful++;
+          logger.success(`Upload ${uploadNumber} completed`);
+
+          if (uploadNumber < totalUploads) {
+            logger.loading('Waiting for next upload...');
+            await delay(3000);
+          }
+        } catch (error) {
+          failed++;
+          logger.error(`Upload ${uploadNumber} failed: ${error.message}`);
+          await delay(5000);
+        }
+      }
+
+      if (walletIndex < privateKeys.length - 1) {
+        logger.loading('Switching to next wallet...');
+        await delay(10000);
+      }
+    }
 
     logger.section('Upload Summary');
     logger.summary(`Total wallets: ${privateKeys.length}`);
@@ -508,14 +506,13 @@ async function main() {
 
     rl.close();
 
-    // --- LOGIC UTAMAMU SELESAI DI SINI ---
   } catch (error) {
     logger.critical(`Main process error: ${error.message}`);
     rl.close();
   }
 }
 
-// taruh DI LUAR main()
+// ini tetap di luar main
 rl.on('close', () => {
   logger.bye('Process completed ~ Bye bang !');
 });
@@ -533,5 +530,5 @@ async function mainLoop() {
   }
 }
 
-// mulai loop
+// mulai
 mainLoop();
