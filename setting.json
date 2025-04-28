@@ -1,0 +1,5 @@
+{
+  "upload_per_wallet": 2,
+  "min_delay_seconds": 60,
+  "max_delay_seconds": 120
+}
