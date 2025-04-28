@@ -36,8 +36,11 @@ npm install
 
 ## Configuration
 
-1. Create a `.env` file in the root directory with your private keys:
-
+1. Fill `.env` file in the root directory with your private keys:
+```bash
+nano.env
+```
+---
 ```
 # For a single wallet
 PRIVATE_KEY=your_private_key_here
