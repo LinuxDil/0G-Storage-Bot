@@ -418,6 +418,17 @@ async function uploadToStorage(imageData, wallet, walletIndex) {
 
 // main function
 
+// Fungsi untuk format waktu dalam format jam, menit, dan detik
+function formatTime(milliseconds) {
+  const seconds = Math.floor(milliseconds / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  const remainingSeconds = seconds % 60;
+
+  return `${hours} jam ${remainingMinutes} menit ${remainingSeconds} detik`;
+}
+
 async function main() {
   try {
     logger.banner();
@@ -503,13 +514,18 @@ async function main() {
       // Mulai lagi setelah proses selesai
       const getRandomDelay = () => Math.floor(Math.random() * (24 * 60 * 60 * 1000)) + 1; // Random delay between 1 ms and 24 hours
       const delayUntilNextRun = getRandomDelay();
-      console.log(`Next run in ${delayUntilNextRun / 1000 / 60 / 60} hours`);
 
-      setTimeout(() => {
-        main(); // Memanggil kembali fungsi main setelah interval yang ditentukan
-      }, delayUntilNextRun);
-
-      rl.close(); // Menutup rl setelah selesai
+      // Countdown display
+      let countdown = delayUntilNextRun;
+      const countdownInterval = setInterval(() => {
+        const formattedTime = formatTime(countdown);
+        console.log(`Next run in ${formattedTime}`);
+        countdown -= 1000; // Kurangi setiap detik
+        if (countdown <= 0) {
+          clearInterval(countdownInterval); // Hentikan countdown ketika selesai
+          main(); // Mulai ulang setelah waktu selesai
+        }
+      }, 1000); // Update setiap detik
     });
 
   } catch (error) {
