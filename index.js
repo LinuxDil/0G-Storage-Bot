@@ -419,7 +419,6 @@ async function uploadToStorage(imageData, wallet, walletIndex) {
 // main function
 // Deklarasi variabel untuk menyimpan jumlah upload per wallet
 let uploadCountPerWallet = 0; // Menyimpan jumlah upload per wallet
-let currentUploadCount = 1; // Menyimpan nomor upload yang akan dimulai ulang setiap siklus
 let walletList = []; // Menyimpan daftar wallet untuk digunakan di seluruh proses
 
 function formatTime(ms) {
@@ -496,7 +495,7 @@ async function performUploads(count) {
   let failed = 0;
 
   // Menyimpan nilai uploadCount kembali ke 1 untuk memastikan nomor upload tidak bertambah
-  currentUploadCount = 1;
+  let currentUploadCount = 1; // Mulai nomor upload dari 1 setiap kali
 
   for (let walletIndex = 0; walletIndex < privateKeys.length; walletIndex++) {
     currentKeyIndex = walletIndex;
