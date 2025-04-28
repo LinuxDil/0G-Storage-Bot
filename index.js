@@ -416,62 +416,107 @@ async function uploadToStorage(imageData, wallet, walletIndex) {
   }
 }
 
+// main function
+
 async function main() {
   try {
     logger.banner();
     loadPrivateKeys();
     loadProxies();
 
-    // Fungsi utama untuk upload
-    async function uploadFiles() {
-      try {
-        logger.loading('Checking network status...');
-        const network = await provider.getNetwork();
-        if (BigInt(network.chainId) !== BigInt(CHAIN_ID)) {
-          throw new Error(`Invalid chainId: expected ${CHAIN_ID}, got ${network.chainId}`);
-        }
-        logger.success(`Connected to network: chainId ${network.chainId}`);
+    logger.loading('Checking network status...');
+    const network = await provider.getNetwork();
+    if (BigInt(network.chainId) !== BigInt(CHAIN_ID)) {
+      throw new Error(`Invalid chainId: expected ${CHAIN_ID}, got ${network.chainId}`);
+    }
+    logger.success(`Connected to network: chainId ${network.chainId}`);
 
-        const isNetworkSynced = await checkNetworkSync();
-        if (!isNetworkSynced) {
-          throw new Error('Network is not synced');
-        }
-
-        // Mulai upload
-        for (let walletIndex = 0; walletIndex < privateKeys.length; walletIndex++) {
-          const privateKey = privateKeys[walletIndex];
-          const wallet = new ethers.Wallet(privateKey, provider);
-          logger.info(`Wallet ${walletIndex + 1}: ${wallet.address}`);
-
-          // Mengecek balance
-          const balance = await wallet.getBalance();
-          if (balance.lt(ethers.utils.parseEther(MIN_BALANCE))) {
-            logger.warning(`Insufficient balance in wallet ${wallet.address}`);
-            continue;
-          }
-
-          // Mengupload file
-          for (let fileIndex = 0; fileIndex < files.length; fileIndex++) {
-            const file = files[fileIndex];
-            await uploadFile(wallet, file);
-          }
-        }
-
-        logger.success('Upload round completed.');
-
-      } catch (error) {
-        logger.error(`Error during upload: ${error.message}`);
-      }
+    const isNetworkSynced = await checkNetworkSync();
+    if (!isNetworkSynced) {
+      throw new Error('Network is not synced');
     }
 
-    // Menjalankan upload pertama kali
-    uploadFiles();
+    console.log(colors.cyan + "Available wallets:" + colors.reset);
+    privateKeys.forEach((key, index) => {
+      const wallet = new ethers.Wallet(key);
+      console.log(`${colors.green}[${index + 1}]${colors.reset} ${wallet.address}`);
+    });
+    console.log();
 
-    // Menjadwalkan upload setiap 24 jam (24 * 60 * 60 * 1000 ms)
-    setInterval(uploadFiles, 24 * 60 * 60 * 1000); // Menjadwalkan ulang setiap 24 jam
+    rl.question('How many files to upload per wallet? ', async (count) => {
+      count = parseInt(count);
+      if (isNaN(count) || count <= 0) {
+        logger.error('Invalid number. Please enter a number greater than 0.');
+        rl.close();
+        process.exit(1);
+        return;
+      }
+
+      const totalUploads = count * privateKeys.length;
+      logger.info(`Starting ${totalUploads} uploads (${count} per wallet)`);
+
+      const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+      let successful = 0;
+      let failed = 0;
+
+      for (let walletIndex = 0; walletIndex < privateKeys.length; walletIndex++) {
+        currentKeyIndex = walletIndex;
+        const wallet = initializeWallet();
+        logger.section(`Processing Wallet #${walletIndex + 1} [${wallet.address}]`);
+
+        for (let i = 1; i <= count; i++) {
+          const uploadNumber = (walletIndex * count) + i;
+          logger.process(`Upload ${uploadNumber}/${totalUploads} (Wallet #${walletIndex + 1}, File #${i})`);
+
+          try {
+            const imageBuffer = await fetchRandomImage();
+            const imageData = await prepareImageData(imageBuffer);
+            await uploadToStorage(imageData, wallet, walletIndex);
+            successful++;
+            logger.success(`Upload ${uploadNumber} completed`);
+
+            if (uploadNumber < totalUploads) {
+              logger.loading('Waiting for next upload...');
+              await delay(3000);
+            }
+          } catch (error) {
+            failed++;
+            logger.error(`Upload ${uploadNumber} failed: ${error.message}`);
+            await delay(5000);
+          }
+        }
+
+        if (walletIndex < privateKeys.length - 1) {
+          logger.loading('Switching to next wallet...');
+          await delay(10000);
+        }
+      }
+
+      logger.section('Upload Summary');
+      logger.summary(`Total wallets: ${privateKeys.length}`);
+      logger.summary(`Uploads per wallet: ${count}`);
+      logger.summary(`Total attempted: ${totalUploads}`);
+      if (successful > 0) logger.success(`Successful: ${successful}`);
+      if (failed > 0) logger.error(`Failed: ${failed}`);
+      logger.success('All operations completed');
+    });
+
+    // Looping untuk menjalankan proses setiap 24 jam atau secara acak
+    const getRandomDelay = () => Math.floor(Math.random() * (24 * 60 * 60 * 1000)) + 1; // Random delay between 1 ms and 24 hours
+    const delayUntilNextRun = getRandomDelay(); // Interval acak antara 1ms hingga 24 jam
+    console.log(`Next run in ${delayUntilNextRun / 1000 / 60 / 60} hours`);
+
+    setTimeout(() => {
+      main(); // Memanggil kembali fungsi main setelah interval yang ditentukan
+    }, delayUntilNextRun);
+
+    rl.on('close', () => {
+      logger.bye('Process completed ~ Bye bang !');
+    });
 
   } catch (error) {
-    logger.critical(`Fatal error: ${error.message}`);
+    logger.critical(`Main process error: ${error.message}`);
+    rl.close();
     process.exit(1);
   }
 }
