@@ -423,15 +423,6 @@ function formatTime(milliseconds) {
   return `${seconds} detik`;
 }
 
-// Kode untuk memberi warna pada countdown
-const colors = {
-  reset: '\x1b[0m',      // Reset to default color
-  green: '\x1b[32m',     // Hijau
-  red: '\x1b[31m',       // Merah
-  yellow: '\x1b[33m',    // Kuning
-  cyan: '\x1b[36m',      // Biru muda
-};
-
 async function main() {
   try {
     logger.banner();
