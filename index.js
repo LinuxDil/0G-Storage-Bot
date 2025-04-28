@@ -429,6 +429,15 @@ function formatTime(milliseconds) {
   return `${hours} jam ${remainingMinutes} menit ${remainingSeconds} detik`;
 }
 
+// Kode untuk memberi warna pada countdown
+const colors = {
+  reset: '\x1b[0m',      // Reset to default color
+  green: '\x1b[32m',     // Hijau
+  red: '\x1b[31m',       // Merah
+  yellow: '\x1b[33m',    // Kuning
+  cyan: '\x1b[36m',      // Biru muda
+};
+
 async function main() {
   try {
     logger.banner();
@@ -511,21 +520,27 @@ async function main() {
       if (failed > 0) logger.error(`Failed: ${failed}`);
       logger.success('All operations completed');
 
-      // Mulai lagi setelah proses selesai
-      const getRandomDelay = () => Math.floor(Math.random() * (24 * 60 * 60 * 1000)) + 1; // Random delay between 1 ms and 24 hours
-      const delayUntilNextRun = getRandomDelay();
+      // Fungsi untuk menentukan waktu random antara 6 hingga 24 jam
+      const getRandomDelay = () => {
+        const minDelay = 0 * 00 * 00 * 1000; // 6 jam dalam milidetik
+        const maxDelay = 0 * 00 * 10 * 1000; // 24 jam dalam milidetik
+        return Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay; // Random delay antara 6 jam dan 24 jam
+      };
 
+      // Ambil waktu random untuk next run
+      const delayUntilNextRun = getRandomDelay();
+      
       // Countdown display
       let countdown = delayUntilNextRun;
       const countdownInterval = setInterval(() => {
         const formattedTime = formatTime(countdown);
-        
+
         // Hapus baris yang lama
         process.stdout.clearLine();
         process.stdout.cursorTo(0);
-        
-        // Cetak countdown baru
-        process.stdout.write(`Next run in ${formattedTime}`);
+
+        // Menambahkan warna pada countdown
+        process.stdout.write(`${colors.yellow}Next run in ${formattedTime}${colors.reset}`);
         
         countdown -= 1000; // Kurangi setiap detik
         if (countdown <= 0) {
