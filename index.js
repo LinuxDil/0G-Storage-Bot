@@ -418,7 +418,7 @@ async function uploadToStorage(imageData, wallet, walletIndex) {
 
 // main function
 // Deklarasi variabel untuk menyimpan jumlah upload per wallet
-let uploadCountPerWallet = 0;
+let uploadCountPerWallet = 0; // Pastikan hanya dideklarasikan sekali
 
 function formatTime(ms) {
   const hours = Math.floor(ms / (1000 * 60 * 60));
@@ -489,17 +489,13 @@ async function performUploads(count) {
   let successful = 0;
   let failed = 0;
 
-  // Loop untuk setiap wallet
   for (let walletIndex = 0; walletIndex < privateKeys.length; walletIndex++) {
     currentKeyIndex = walletIndex;
     const wallet = initializeWallet();
     logger.section(`Processing Wallet #${walletIndex + 1} [${wallet.address}]`);
 
-    // Set nomor upload per wallet
-    let uploadNumber = 1;
-
     for (let i = 1; i <= count; i++) {
-      // Hanya gunakan nomor upload yang dihitung per wallet
+      const uploadNumber = (walletIndex * count) + i;
       logger.process(`Upload ${uploadNumber}/${totalUploads} (Wallet #${walletIndex + 1}, File #${i})`);
 
       try {
@@ -513,9 +509,6 @@ async function performUploads(count) {
           logger.loading('Waiting for next upload...');
           await delay(3000);
         }
-
-        // Increment uploadNumber setelah setiap upload
-        uploadNumber++;
       } catch (error) {
         failed++;
         logger.error(`Upload ${uploadNumber} failed: ${error.message}`);
