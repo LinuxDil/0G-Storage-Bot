@@ -37,7 +37,7 @@ const logger = {
   banner: () => {
     console.log(`${colors.cyan}${colors.bold}`);
     console.log(`=============================================`);
-    console.log(` 0G Storage Scan Auto Bot - Airdrop Insiders`);
+    console.log(` 0G Storage Scan Auto Bot - Airdrop Seeker`);
     console.log(`=============================================${colors.reset}\n`);
   }
 };
