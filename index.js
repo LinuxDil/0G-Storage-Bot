@@ -417,12 +417,20 @@ async function uploadToStorage(imageData, wallet, walletIndex) {
 }
 
 // main function
-function formatTime(ms) {
-  const hours = Math.floor(ms / (1000 * 60 * 60));
-  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
-  const seconds = Math.floor((ms % (1000 * 60)) / 1000);
-  return `${hours} jam ${minutes} menit ${seconds} detik`;
+// Fungsi untuk format waktu dalam format detik
+function formatTime(milliseconds) {
+  const seconds = Math.floor(milliseconds / 1000);
+  return `${seconds} detik`;
 }
+
+// Kode untuk memberi warna pada countdown
+const colors = {
+  reset: '\x1b[0m',      // Reset to default color
+  green: '\x1b[32m',     // Hijau
+  red: '\x1b[31m',       // Merah
+  yellow: '\x1b[33m',    // Kuning
+  cyan: '\x1b[36m',      // Biru muda
+};
 
 async function main() {
   try {
@@ -449,27 +457,92 @@ async function main() {
     });
     console.log();
 
-    // Jika belum di-set, tanyakan jumlah upload per wallet
-    if (uploadCountPerWallet === 0) {
-      rl.question('How many files to upload per wallet? ', async (count) => {
-        count = parseInt(count);
-        if (isNaN(count) || count <= 0) {
-          logger.error('Invalid number. Please enter a number greater than 0.');
-          rl.close();
-          process.exit(1);
-          return;
+    rl.question('How many files to upload per wallet? ', async (count) => {
+      count = parseInt(count);
+      if (isNaN(count) || count <= 0) {
+        logger.error('Invalid number. Please enter a number greater than 0.');
+        rl.close();
+        process.exit(1);
+        return;
+      }
+
+      const totalUploads = count * privateKeys.length;
+      logger.info(`Starting ${totalUploads} uploads (${count} per wallet)`);
+
+      const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+      let successful = 0;
+      let failed = 0;
+
+      for (let walletIndex = 0; walletIndex < privateKeys.length; walletIndex++) {
+        currentKeyIndex = walletIndex;
+        const wallet = initializeWallet();
+        logger.section(`Processing Wallet #${walletIndex + 1} [${wallet.address}]`);
+
+        for (let i = 1; i <= count; i++) {
+          const uploadNumber = (walletIndex * count) + i;
+          logger.process(`Upload ${uploadNumber}/${totalUploads} (Wallet #${walletIndex + 1}, File #${i})`);
+
+          try {
+            const imageBuffer = await fetchRandomImage();
+            const imageData = await prepareImageData(imageBuffer);
+            await uploadToStorage(imageData, wallet, walletIndex);
+            successful++;
+            logger.success(`Upload ${uploadNumber} completed`);
+
+            if (uploadNumber < totalUploads) {
+              logger.loading('Waiting for next upload...');
+              await delay(3000);
+            }
+          } catch (error) {
+            failed++;
+            logger.error(`Upload ${uploadNumber} failed: ${error.message}`);
+            await delay(5000);
+          }
         }
 
-        // Menyimpan jumlah upload untuk digunakan di setiap looping
-        uploadCountPerWallet = count;
+        if (walletIndex < privateKeys.length - 1) {
+          logger.loading('Switching to next wallet...');
+          await delay(10000);
+        }
+      }
 
-        // Lanjutkan eksekusi setelah input
-        await performUploads(uploadCountPerWallet);
-      });
-    } else {
-      // Langsung mulai upload jika uploadCountPerWallet sudah ada
-      await performUploads(uploadCountPerWallet);
-    }
+      logger.section('Upload Summary');
+      logger.summary(`Total wallets: ${privateKeys.length}`);
+      logger.summary(`Uploads per wallet: ${count}`);
+      logger.summary(`Total attempted: ${totalUploads}`);
+      if (successful > 0) logger.success(`Successful: ${successful}`);
+      if (failed > 0) logger.error(`Failed: ${failed}`);
+      logger.success('All operations completed');
+
+      // Fungsi untuk menentukan waktu random antara 5 hingga 10 detik
+      const getRandomDelay = () => {
+        const minDelay = 5 * 1000; // 5 detik dalam milidetik
+        const maxDelay = 10 * 1000; // 10 detik dalam milidetik
+        return Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay; // Random delay antara 5 detik dan 10 detik
+      };
+
+      // Ambil waktu random untuk next run
+      const delayUntilNextRun = getRandomDelay();
+      
+      // Countdown display
+      let countdown = delayUntilNextRun;
+      const countdownInterval = setInterval(() => {
+        const formattedTime = formatTime(countdown);
+
+        // Hapus baris yang lama
+        process.stdout.clearLine();
+        process.stdout.cursorTo(0);
+
+        // Menambahkan warna pada countdown
+        process.stdout.write(`${colors.yellow}Next run in ${formattedTime}${colors.reset}`);
+        
+        countdown -= 1000; // Kurangi setiap detik
+        if (countdown <= 0) {
+          clearInterval(countdownInterval); // Hentikan countdown ketika selesai
+          main(); // Mulai ulang setelah waktu selesai
+        }
+      }, 1000); // Update setiap detik
+    });
 
   } catch (error) {
     logger.critical(`Main process error: ${error.message}`);
@@ -478,86 +551,4 @@ async function main() {
   }
 }
 
-async function performUploads(count) {
-  const totalUploads = count * privateKeys.length;
-  logger.info(`Starting ${totalUploads} uploads (${count} per wallet)`);
-
-  const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-  let successful = 0;
-  let failed = 0;
-
-  for (let walletIndex = 0; walletIndex < privateKeys.length; walletIndex++) {
-    currentKeyIndex = walletIndex;
-    const wallet = initializeWallet();
-    logger.section(`Processing Wallet #${walletIndex + 1} [${wallet.address}]`);
-
-    for (let i = 1; i <= count; i++) {
-      const uploadNumber = currentUploadCount;
-      currentUploadCount++; // Menambahkan hanya di sini, bukan di seluruh siklus
-
-      logger.process(`Upload ${uploadNumber}/${totalUploads} (Wallet #${walletIndex + 1}, File #${i})`);
-
-      try {
-        const imageBuffer = await fetchRandomImage();
-        const imageData = await prepareImageData(imageBuffer);
-        await uploadToStorage(imageData, wallet, walletIndex);
-        successful++;
-        logger.success(`Upload ${uploadNumber} completed`);
-
-        if (uploadNumber < totalUploads) {
-          logger.loading('Waiting for next upload...');
-          await delay(3000);
-        }
-      } catch (error) {
-        failed++;
-        logger.error(`Upload ${uploadNumber} failed: ${error.message}`);
-        await delay(5000);
-      }
-    }
-
-    if (walletIndex < privateKeys.length - 1) {
-      logger.loading('Switching to next wallet...');
-      await delay(10000);
-    }
-  }
-
-  logger.section('Upload Summary');
-  logger.summary(`Total wallets: ${privateKeys.length}`);
-  logger.summary(`Uploads per wallet: ${count}`);
-  logger.summary(`Total attempted: ${totalUploads}`);
-  if (successful > 0) logger.success(`Successful: ${successful}`);
-  if (failed > 0) logger.error(`Failed: ${failed}`);
-  logger.success('All operations completed');
-
-  // Fungsi untuk menentukan waktu random antara 5 hingga 10 detik
-  const getRandomDelay = () => {
-    const minDelay = 5 * 1000; // 5 detik dalam milidetik
-    const maxDelay = 10 * 1000; // 10 detik dalam milidetik
-    return Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay; // Random delay antara 5 detik dan 10 detik
-  };
-
-  // Ambil waktu random untuk next run
-  const delayUntilNextRun = getRandomDelay();
-  
-  // Countdown display
-  let countdown = delayUntilNextRun;
-  const countdownInterval = setInterval(() => {
-    const formattedTime = formatTime(countdown);
-
-    // Hapus baris yang lama
-    process.stdout.clearLine();
-    process.stdout.cursorTo(0);
-
-    // Menambahkan warna pada countdown
-    process.stdout.write(`${colors.yellow}Next run in ${formattedTime}${colors.reset}`);
-    
-    countdown -= 1000; // Kurangi setiap detik
-    if (countdown <= 0) {
-      clearInterval(countdownInterval); // Hentikan countdown ketika selesai
-      main(); // Mulai ulang setelah waktu selesai
-    }
-  }, 1000); // Update setiap detik
-}
-
-// Mulai program
 main();
