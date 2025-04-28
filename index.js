@@ -519,7 +519,14 @@ async function main() {
       let countdown = delayUntilNextRun;
       const countdownInterval = setInterval(() => {
         const formattedTime = formatTime(countdown);
-        console.log(`Next run in ${formattedTime}`);
+        
+        // Hapus baris yang lama
+        process.stdout.clearLine();
+        process.stdout.cursorTo(0);
+        
+        // Cetak countdown baru
+        process.stdout.write(`Next run in ${formattedTime}`);
+        
         countdown -= 1000; // Kurangi setiap detik
         if (countdown <= 0) {
           clearInterval(countdownInterval); // Hentikan countdown ketika selesai
