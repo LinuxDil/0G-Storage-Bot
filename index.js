@@ -418,8 +418,13 @@ async function uploadToStorage(imageData, wallet, walletIndex) {
 
 // main function
 
-// Variabel global untuk menyimpan jumlah upload per wallet
-let uploadCountPerWallet = 0;
+// Fungsi untuk format waktu dalam format jam:menit:detik
+function formatTime(ms) {
+  const hours = Math.floor(ms / (1000 * 60 * 60));
+  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((ms % (1000 * 60)) / 1000);
+  return `${hours} jam ${minutes} menit ${seconds} detik`;
+}
 
 async function main() {
   try {
