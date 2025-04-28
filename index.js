@@ -467,7 +467,7 @@ async function main() {
         uploadCountPerWallet = count;
 
         // Lanjutkan eksekusi setelah input
-        await performUploads(count);
+        await performUploads(uploadCountPerWallet);
       });
     } else {
       // Langsung mulai upload jika uploadCountPerWallet sudah ada
