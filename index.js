@@ -490,13 +490,13 @@ async function main() {
         }
       }
 
-   function sleep(ms) {
+function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 async function main() {
   try {
-    // Semua proses utama kamu...
+    // --- LOGIC UTAMAMU MULAI DI SINI ---
 
     logger.section('Upload Summary');
     logger.summary(`Total wallets: ${privateKeys.length}`);
@@ -507,15 +507,15 @@ async function main() {
     logger.success('All operations completed');
 
     rl.close();
-    // process.exit(0); // Dihapus supaya bisa looping
+
+    // --- LOGIC UTAMAMU SELESAI DI SINI ---
   } catch (error) {
     logger.critical(`Main process error: ${error.message}`);
     rl.close();
-    // process.exit(1); // Dihapus supaya bisa looping
   }
 }
 
-// Event close diletakkan di luar main()
+// taruh DI LUAR main()
 rl.on('close', () => {
   logger.bye('Process completed ~ Bye bang !');
 });
@@ -525,13 +525,13 @@ async function mainLoop() {
     try {
       await main();
       logger.wait('Waiting 24 hours before next run...');
-      await sleep(24 * 60 * 60 * 1000); // 24 jam dalam ms
+      await sleep(24 * 60 * 60 * 1000); // 24 jam
     } catch (error) {
       logger.critical(`Main loop error: ${error.message}`);
-      await sleep(60 * 1000); // 1 menit kalau error
+      await sleep(60 * 1000); // 1 menit
     }
   }
 }
 
-// Start looping
+// mulai loop
 mainLoop();
