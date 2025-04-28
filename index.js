@@ -419,6 +419,7 @@ async function uploadToStorage(imageData, wallet, walletIndex) {
 // main function
 // Deklarasi variabel untuk menyimpan jumlah upload per wallet
 let uploadCountPerWallet = 0; // Pastikan hanya dideklarasikan sekali
+let currentUploadCount = 1; // Menyimpan nomor upload yang sedang berjalan
 
 function formatTime(ms) {
   const hours = Math.floor(ms / (1000 * 60 * 60));
@@ -495,7 +496,9 @@ async function performUploads(count) {
     logger.section(`Processing Wallet #${walletIndex + 1} [${wallet.address}]`);
 
     for (let i = 1; i <= count; i++) {
-      const uploadNumber = (walletIndex * count) + i;
+      const uploadNumber = currentUploadCount;
+      currentUploadCount++; // Menambahkan hanya di sini, bukan di seluruh siklus
+
       logger.process(`Upload ${uploadNumber}/${totalUploads} (Wallet #${walletIndex + 1}, File #${i})`);
 
       try {
