@@ -21,14 +21,16 @@ For questions or support, open an issue on GitHub or join our community:
 
 ## Installation
 
+Clone the repository
 ```bash
-# Clone the repository
 git clone https://github.com/LinuxDil/0g-Storage-Bot.git
-
-# Navigate to the directory
+```
+Navigate to the directory
+```bash
 cd 0g-Storage-Bot
-
-# Install dependencies
+```
+Install dependencies
+```bash
 npm install
 ```
 
