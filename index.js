@@ -499,19 +499,17 @@ async function main() {
       if (successful > 0) logger.success(`Successful: ${successful}`);
       if (failed > 0) logger.error(`Failed: ${failed}`);
       logger.success('All operations completed');
-    });
 
-    // Looping untuk menjalankan proses setiap 24 jam atau secara acak
-    const getRandomDelay = () => Math.floor(Math.random() * (24 * 60 * 60 * 1000)) + 1; // Random delay between 1 ms and 24 hours
-    const delayUntilNextRun = getRandomDelay(); // Interval acak antara 1ms hingga 24 jam
-    console.log(`Next run in ${delayUntilNextRun / 1000 / 60 / 60} hours`);
+      // Mulai lagi setelah proses selesai
+      const getRandomDelay = () => Math.floor(Math.random() * (24 * 60 * 60 * 1000)) + 1; // Random delay between 1 ms and 24 hours
+      const delayUntilNextRun = getRandomDelay();
+      console.log(`Next run in ${delayUntilNextRun / 1000 / 60 / 60} hours`);
 
-    setTimeout(() => {
-      main(); // Memanggil kembali fungsi main setelah interval yang ditentukan
-    }, delayUntilNextRun);
+      setTimeout(() => {
+        main(); // Memanggil kembali fungsi main setelah interval yang ditentukan
+      }, delayUntilNextRun);
 
-    rl.on('close', () => {
-      logger.bye('Process completed ~ Bye bang !');
+      rl.close(); // Menutup rl setelah selesai
     });
 
   } catch (error) {
