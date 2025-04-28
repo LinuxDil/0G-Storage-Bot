@@ -537,10 +537,10 @@ async function performUploads(count) {
   if (failed > 0) logger.error(`Failed: ${failed}`);
   logger.success('All operations completed');
 
-  // Delay acak sebelum restart
+  // Delay acak sebelum restart (kamu bisa atur sesuka hati)
   const getRandomDelay = () => {
-    const minDelay = 5000; // 5 detik
-    const maxDelay = 10000; // 10 detik
+    const minDelay = 82800000; // 23 jam (dalam hitungan milidetik)
+    const maxDelay = 10000; // 24 jam (dalam hitungan milidetik)
     return Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
   };
 
