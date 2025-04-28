@@ -20,7 +20,10 @@ For questions or support, open an issue on GitHub or join our community:
 - **Transaction History**: Save all transaction details for future reference
 
 ## Installation
-
+Create Screen
+```bash
+screen -R 0G
+```
 Clone the repository
 ```bash
 git clone https://github.com/LinuxDil/0g-Storage-Bot.git
