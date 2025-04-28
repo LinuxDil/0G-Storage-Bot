@@ -513,7 +513,7 @@ async function main() {
 
       // Fungsi untuk menentukan waktu random antara 6 hingga 24 jam
       const getRandomDelay = () => {
-        const minDelay = 0 * 00 * 00 * 1000; // 6 jam dalam milidetik
+        const minDelay = 0 * 00 * 05 * 1000; // 6 jam dalam milidetik
         const maxDelay = 0 * 00 * 10 * 1000; // 24 jam dalam milidetik
         return Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay; // Random delay antara 6 jam dan 24 jam
       };
