@@ -540,7 +540,7 @@ async function performUploads(count) {
   // Delay acak sebelum restart (kamu bisa atur sesuka hati)
   const getRandomDelay = () => {
     const minDelay = 82800000; // 23 jam (dalam hitungan milidetik)
-    const maxDelay = 10000; // 24 jam (dalam hitungan milidetik)
+    const maxDelay = 86400000; // 24 jam (dalam hitungan milidetik)
     return Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
   };
 
