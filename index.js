@@ -416,7 +416,7 @@ async function uploadToStorage(imageData, wallet, walletIndex) {
   }
 }
 
-// main function
+// main function krusial
 // Deklarasi variabel global
 let uploadCountPerWallet = 0;
 let walletList = []; // List wallet untuk ditampilkan satu kali
