@@ -42,7 +42,7 @@ const logger = {
   }
 };
 
-const CHAIN_ID = 80087;
+const CHAIN_ID = 16601;
 const RPC_URL = 'https://evmrpc-testnet.0g.ai';
 const CONTRACT_ADDRESS = '0x56A565685C9992BF5ACafb940ff68922980DBBC5';
 const METHOD_ID = '0xef3e12dc';
